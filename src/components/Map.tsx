@@ -1,21 +1,18 @@
 import { GoogleMap, LoadScript, MarkerF } from '@react-google-maps/api';
+import { stringify } from 'querystring';
 import { useState } from 'react';
-
-const containerStyle = {
-  width: '80vw',
-  height: '80vh',
-};
+import { mapContainerStyle, mapCenter } from '../utils/MapConfig';
+import * as mapHelpers from '../utils/MapHelpers';
 
 interface Coordinate {
-  id: number;
   lat: number;
   lng: number;
 }
 
-const center = {
-  lat: 52.173,
-  lng: 21.019,
-};
+interface CoordinateWithOccurences {
+  coord: Coordinate;
+  occurences: number;
+}
 
 const randomLatMax = 51.95;
 const randomLatMin = 51.95;
@@ -34,10 +31,9 @@ const generateRandomLongitude = () => {
 const generateRandomCoordinates = () => {
   const coordinates: Coordinate[] = [];
   for (let i = 0; i < 100; i++) {
-    let id = i;
     let latitude = generateRandomLatitude();
     let longitude = generateRandomLongitude();
-    coordinates.push({ id: id, lat: latitude, lng: longitude });
+    coordinates.push({ lat: latitude, lng: longitude });
   }
   return coordinates;
 };
@@ -47,19 +43,31 @@ export const Map: React.FC = () => {
     generateRandomCoordinates()
   );
 
+  const [equalCoordinates, useEqualCoordinates] = useState<Coordinate[]>([
+    { lat: 51.95, lng: 20.42 },
+    { lat: 51.95, lng: 20.42 },
+    { lat: 52, lng: 20.45 },
+    { lat: 52, lng: 20.45 },
+  ]);
+
+  const [coordinatesMap, useCoordinatesMap] = useState<
+    CoordinateWithOccurences[]
+  >(mapHelpers.parseCoordData(mapHelpers.data));
+
   return (
     <>
       <LoadScript googleMapsApiKey="AIzaSyBNLrJhOMz6idD05pzfn5lhA-TAw-mAZCU">
         <div className="flex flex-auto">
           <div className="m-auto">
             <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={center}
+              mapContainerStyle={mapContainerStyle}
+              center={mapCenter}
               zoom={11}
             >
-              {coordinates.map((coord) => (
+              {coordinatesMap.map((coord) => (
                 <MarkerF
-                  position={{ lat: coord.lat, lng: coord.lng }}
+                  position={coord.coord}
+                  label={`${coord.occurences}`}
                 ></MarkerF>
               ))}
             </GoogleMap>
